@@ -37,7 +37,7 @@ void UART2_send_str(const char *s) {
     }
 }
 
-void UART2_print_int(uint32_t val) {
+void UART2_print_int(int32_t val) {
     char buf[12];
     int i = 0;
 

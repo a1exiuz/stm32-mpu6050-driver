@@ -15,8 +15,8 @@ int main(void) {
     GPIO_Config_t led = {
         .port = GPIOA,
         .clock_bit = 0,
-        .pin_num = 8,
-        .pin_mask = (1U << 8),
+        .pin_num = 6,
+        .pin_mask = (1U << 6),
         .mode = GPIO_MODE_OUTPUT,
         .type = GPIO_OTYPE_PUSHPULL,
         .speed = GPIO_SPEED_LOW,
