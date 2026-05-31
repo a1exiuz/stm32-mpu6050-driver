@@ -74,7 +74,7 @@ void EXTI4_IRQHandler(void);    // pin 4
 void EXTI9_5_IRQHandler(void);  //pin 5-9 shared
 
 /*
-    EXTI_get_flag1 /2/3
+    EXTI_get_flag 1/2/3
     Returns 1 if the corresponding button interrupt has fired, 0 otherwise
     Clears the flag on read - call once per loop iteration
     flag1: pin 7 (EXTI9_5)

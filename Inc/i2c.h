@@ -1,7 +1,7 @@
 /*
     i2c.h
     I2C1 driver for STM32F446RE
-    Supports single byte write ,single byte read, and multi-byte burst read
+    Supports single byte write ,single byte read, and multi-byte burst read not yet working
     SCL: PB8, SDA: PB9 (AF4)
     Speed: 100kHz standard mode, PCLK1 = 16MHz
     Base address: 0x40005400
@@ -64,6 +64,8 @@ void I2C1_write_reg(uint8_t dev_addr, uint8_t reg, uint8_t data);
 uint8_t I2C1_read_reg(uint8_t dev_addr, uint8_t reg);
 
 /*
+    ***DOES NOT WORK YET - NEED TO DEBUG ACK/NACK SEQUENCE***
+    
     I2CI_read_burst
     Reads multiple consecutive bytes starting from a register address
     Transaction: START -> addr+W -> reg -> repeated START -> addr+R -> data[0..n-1] -> NACK -> STOP

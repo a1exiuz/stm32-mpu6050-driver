@@ -1,3 +1,22 @@
+/**
+*@file main.c
+*@brief MPU605 bare-metal sensor node for STM32 Nucleo-F446RE
+*
+* Initializes GPIO, I2C, UART, SysTick, EXTI, and MPU6050 drivers 
+* Reads accelerometer and gyroscope data every 200ms and streams
+* output over UART at 1115200 buad
+*
+* Button on PA0 cycles through 3 outpt modes:
+*   - Mode 0: raw 16-bit signed ADC values
+*   - Mode 1: scaled to g and degrees/s
+*   - Mode 2: tilt direction based on accel data (LEFT/RIGHT/FORWARD/BACK/CENTER/FLAT/TILTED)
+*
+* LED on PA6 blinks at 1Hz as a heartbeat indicator
+*
+*@note No HAL or BSP
+*
+@ref STM32F446RE Reference Manual RM0390
+*/
 #include "systick.h"
 #include "gpio.h"
 #include "i2c.h"
@@ -5,10 +24,17 @@
 #include "mpu6050.h"
 #include "exti.h"
 
-#define FIRMWARE_VERSION "v1.0"
+#define FIRMWARE_VERSION "1.0.0"
 
 static volatile uint8_t mode = 0;
 
+/**
+*@brief Application entry point
+*
+*Initializes all peripherals and enters the main polling loop
+*
+*@retval int Never returns in normal operation
+*/
 int main(void) {
     SysTick_Init();
 
@@ -96,7 +122,7 @@ int main(void) {
     UART2_init();
     EXTI_init(0, 0, 3);
 
-    // startup banner
+    /* startup banner */
     UART2_send_str("====================\r\n");
     UART2_send_str("MPU6050 Sensor Node \r\n");
     UART2_send_str("Firmware: ");
@@ -104,7 +130,7 @@ int main(void) {
     UART2_send_str("\r\n");
     UART2_send_str("====================\r\n");
 
-    // WHO_AM_I check
+    /* who_am_i check*/
     uint8_t who = MPU6050_who_am_i();
     if(who == 0x68) {
         UART2_send_str("MPU6050 OK\r\n");
@@ -124,7 +150,7 @@ int main(void) {
     MPU6050_Data_t gyro  = {0};
 
     while(1) {
-        // button toggle
+        /* button toggle */
         if(EXTI_get_flag3()) {
         	static uint32_t last_press = 0;
         	if((get_tick() - last_press) >= 200) {
@@ -146,7 +172,7 @@ int main(void) {
 
         }
 
-        // read and print every 200ms
+        /* read and print every 200ms */
         if(elapsed(uart_timer, 200)) {
             uart_timer = get_tick();
 
@@ -162,7 +188,7 @@ int main(void) {
             }
         }
 
-        // blink LED every 1000ms
+        /* blink LED every 1000ms */
         if(elapsed(led_timer, 1000)) {
             led_timer = get_tick();
             GPIO_toggle(&led);

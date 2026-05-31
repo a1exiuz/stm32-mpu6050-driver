@@ -55,6 +55,6 @@ void UART2_send_str(const char *s);
     Transmits a signed 32-bit integer as ASCII text over USART2
     Handles negative values by printing '-' prefix
 */
-void UART2_print_int(int32_t val); //change in header too int32_t
+void UART2_print_int(int32_t val);
 
 #endif
