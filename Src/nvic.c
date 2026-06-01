@@ -1,37 +1,39 @@
 /**
-*@file nvic.c
+* @file nvic.c
 *
-*@brief NVIC (Nested Vectored Interrupt Contrroller) driver for STM32F446RE
+* @brief NVIC (Nested Vectored Interrupt Contrroller) driver for STM32F446RE
 *
 * Provdies enable and disable control for external interrupts via the 
 * Cortex=M4 NVIC registers. Supports IRQs 0-63 across ISER0/ISER1
 * and ICER0/ICER1 regisster pairs
 *
-*@note The STM32F446RE uses 4 priority bits (upper nibble of IPR byte).
+* @note The STM32F446RE uses 4 priority bits (upper nibble of IPR byte).
 *      Priority values should be passed as 0-15, shifted internally
 *      by 4 bits before writing to the IPR register
 *
-*@ref STM32F446RE Reference Manual RM0390, Section 10 (NVIC)
-*@ref ARM Cortex-M4 Technical Reference Manual - Section 4.2 (NVIC)
+* @ref STM32F446RE Reference Manual RM0390, Section 10 (NVIC)
+* @ref ARM Cortex-M4 Generic User Guide - Section 4.2 (NVIC)
 */
 
 #include "nvic.h"
 #include <stdint.h>
 
 /**
-*@brief Enables an IRQ and sets its priority in the NVIC
+* @brief Enables an IRQ and sets its priority in the NVIC
 *
 * Writes the priority to the IPR register and sets the corresponding
 * bit in ISER0 (IRQ 0-31) or ISER1 (IRQ 32-63) to enable the interrupt
 *
-*@param irq IRQ number to enable (0-63)
-*@param priority Interrupt priority (0-15). Lower value = higher priority.
-*                Stored in the upper 4 bits of the IPR byte
+* @param irq IRQ number to enable (0-63)
+* @param priority Interrupt priority (0-15). Lower value = higher priority.
+*                 Stored in the upper 4 bits of the IPR byte
 *
-*@note Priority 0 is the highest priority. On Cortex-M4, only the upper 4 bits
-*      of the IPR byte are implemented
+* @note On STM32F446RE only the upper 4 bits of each priority
+*       byte are implemented. Priority is shifted internally.
+*       Assign lower priority (higher number) to non-critical
+*       interrupts to avoid preempting time-sensitive ones.
 *
-*@retval None
+* @retval None
 */
 void NVIC_enable(uint8_t irq, uint8_t priority) {
     NVIC_IPR[irq] = priority << 4; /* shift into upper nibble of IPR byte */
@@ -42,19 +44,19 @@ void NVIC_enable(uint8_t irq, uint8_t priority) {
         NVIC_ISER1 |= (1U << (irq - 32)); /* enable IRQ 32-63 via ISER1 */
  }
 
- /**
- *@brief Disables an IRQ in the NVIC
- *
+/**
+* @brief Disables an IRQ in the NVIC
+*
 * Sets the corresponding bit in ICER0 (IRQ 0 - 31) or ICER1 (IRQ 32-63)
 * to disable the interrupt. Writing 0 to ICER bits has no effect
 *
-*@param irq IRQ number to disable (0-63)
+* @param irq IRQ number to disable (0-63)
 *
-*@note Writing 1 to an ICER bit disable th IRQ
+* @note Writing 1 to an ICER bit disable th IRQ
 *      Writing 0 has no effect, so OR assignment is sage
 *
-*@retval None
- */
+* @retval None
+*/
 void NVIC_disable(uint8_t irq) {
     if(irq < 32)
         NVIC_ICER0 |= (1U << irq); /* disable IRQ 0-31 via ICER0*/

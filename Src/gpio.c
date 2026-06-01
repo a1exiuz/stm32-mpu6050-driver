@@ -1,29 +1,29 @@
 /**
-*@file gpio.c
-*@brief GPIO driver for STM32F446RE
+* @file gpio.c
+* @brief GPIO driver for STM32F446RE
 *
 * Provides initialization and control functions for GPIO pins using a configuration
 * struct. Supports output, input, and alternate function modes with
 * configurable pull, speed, and output type
 *
-*@ref STM32F446RE Reference Manual RM0390, Section 8 (GPIO)
+* @ref STM32F446RE Reference Manual RM0390
 */
 #include "GPIO.H"
 #include "RCC.H"
 #include <stdint.h>
  
 /**
-*@brief Initialzes a GPIO pin according to the provide configuration
+* @brief Initialzes a GPIO pin according to the provided configuration
 *
-* Configures mode, pull, output type, speed, and alternate function 
-* registers for the specified pin and port. Enables the GPIO port clock via AHB1ENR
+* Configures port clock, mode, pull, output type, speed, and alternate function 
+* registers for the specified pin. Enables the GPIO port clock via AHB1ENR
 *
-*@param cfg Pointer to GPIO_Config_t struct describing the pin configuration
+* @param cfg Pointer to a fully populated GPIO_Config_t struct
 *
-*@note Must be called before any other GPIO operation on the pin 
+* @note Must be called before any other GPIO operation on the pin 
 *      Alternate function is only configure when mode is GPIO_MODE_AF
 *
-*@retval None
+* @retval None
 */
 void GPIO_init(const GPIO_Config_t *cfg) {
     if(!cfg)
@@ -57,12 +57,12 @@ void GPIO_init(const GPIO_Config_t *cfg) {
 }
 
 /**
-*@brief Sets a GPIO pin high or low
+* @brief Sets a GPIO output pin high or low
 *
-*@param cfg Pointer to GPIO_Config_t struct for the target pin
-*@param state GPIO_STATE_LOW (0) to set pin low, GPIO_STATE_HIGH (1) to set pin high
+* @param cfg Pointer to GPIO_Config_t struct for the target pin
+* @param state GPIO_STATE_LOW (0) to set pin low, GPIO_STATE_HIGH (1) to set pin high
 *
-*@retval None
+* @retval None
 */
 void GPIO_write(GPIO_Config_t *cfg, GPIO_State_t state) {
     if(!cfg)
@@ -75,13 +75,13 @@ void GPIO_write(GPIO_Config_t *cfg, GPIO_State_t state) {
 }
 
 /**
-*@brief Toggles the current state of a GPIO output pin
+* @brief Toggles the current state of a GPIO output pin
 *
-* Reads the current ODR state and stes or clears the pin accordingly
+* Reads the current ODR state and sets or clears the pin accordingly
 *
-*@param cfg Pointer to GPIO_Config_t struct for the target pin
+* @param cfg Pointer to GPIO_Config_t struct for the target pin
 *
-*@retval None
+* @retval None
 */
 void GPIO_toggle(GPIO_Config_t *cfg) {
     if(!cfg)
@@ -94,12 +94,12 @@ void GPIO_toggle(GPIO_Config_t *cfg) {
 }
 
 /**
-*@brief Reads the current state of a GPIO input pin
+* @brief Reads the current state of a GPIO pin from the IDR register
 *
-*@param cfg Pointer to a GPIO_Config_t struct for the target pin
+* @param cfg Pointer to a GPIO_Config_t struct for the target pin
 *
-*@retval 1 if pin is high
-*@retval 0 if pin is low or if cfg is NULL
+* @retval 1 if pin is high
+* @retval 0 if pin is LOW or if cfg is NULL
 */
 uint8_t GPIO_read(GPIO_Config_t *cfg) {
     if(!cfg)

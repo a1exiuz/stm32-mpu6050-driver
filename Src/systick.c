@@ -1,6 +1,6 @@
 /**
-*@file systick.c
-*@brief SysTick timer driver for STM32F446RE
+* @file systick.c
+* @brief SysTick timer driver for STM32F446RE
 *
 *
 * Configures the Cortex-M4 SysTick timer to generate a 1ms interrupt
@@ -11,9 +11,10 @@
 *   - delay_ms(ms): blocking delay in milliseconds
 *   - elapsed(start, duration): non-blocking check if duration has passed
 *
-*@note SysTick is used exclusively by this driver
+* @note SysTick is used exclusively by this driver
 *
-*@ref ARM Cortex-M4 Technical Reference Manual - Section 4 (SysTick)
+* @ref STM32F446RE Reference Manual RM0390 - Section 4 (SysTick)
+* @ref ARM Cortex-M4 Generic User Guide - Section 4.4 (SysTick)
 */
 
 #include "systick.h"
@@ -22,27 +23,26 @@
 static volatile uint32_t ms_tick = 0;
 
 /**
-*@brief SysTick interrupt handler
+* @brief SysTick interrupt handler
 *
 * Called every 1ms by the SysTick timer. Increments the global
 * millisecond counter used by get_tick(), delay_ms(), and elapsed()
 *
-*@retval None
+* @retval None
 */
 void SysTick_Handler(void) {
     ms_tick++;
 }
 
 /**
-*@brief Initializes SysTick for a 1ms interrupt period
+* @brief Initializes SysTick for a 1ms interrupt period at 16MHz
 *
 * Configures the reload value, clears the current value register
 * and enables SysTick with processor clock and interrupt enabled
 *
-*@note Assumes system clock is 16MHz (HSI default)
-*      Update SYSTICK_LOAD_1MS in systick.h if clock frequency changes
+* @note Update SYSTICK_LOAD_1MS in systick.h if clock frequency changes
 *
-*@retval None
+* @retval None
 */
 void SysTick_Init(void) {
     SYSTICK->LOAD = SYSTICK_LOAD_1MS; /* reload value for 1ms */
@@ -53,29 +53,28 @@ void SysTick_Init(void) {
 }
 
 /**
-*@brief Returns the current millisecond tick count
+* @brief Returns the current millisecond tick count
 *
-* Tick count starts at 0 on startup and increments every 1ms
-* Wraps around after ~49 days (UINT_MAX ms)
+* Wraps around after ~49 days (UINT32_MAX ms)
 *
-*@retval Current tick count in milliseconds since startup
+* @retval uint32_t Milliseconds elapsed since SysTick_Init() was called
 */
 uint32_t get_tick(void) {
     return ms_tick;
 }
 
 /**
-*@brief Blocking delay for a specified number of milliseconds
+* @brief Blocking delay for a specified number of milliseconds
 *
 * Spins until the requested number of milliseconds have elapsed
 * Uses subtraction-based comparison to hand uint32_t rollover correctly
 *
-*@param ms Number of milliseconds to delay
+* @param ms Number of milliseconds to delay
 *
-*@note Blocking - CPU is occupied for the full duration
-*                 Use elapsed() for non-blocking timing in the main loop
+* @note Blocking - CPU is occupied for the full duration
+*       Use elapsed() for non-blocking timing in the main loop
 *
-*@retval None
+* @retval None
 */
 void delay_ms(uint32_t ms) {
     uint32_t start = ms_tick;
@@ -83,16 +82,16 @@ void delay_ms(uint32_t ms) {
 }
 
 /**
-*@brief Non-blocking check if a time duration has elapsed
+* @brief Non-blocking check if a time duration has elapsed
 *
 * Compares the current tick against a stored start time
 * Handles uint32_t rollover correctly via subrtraction 
 *
-*@param start Tick value captured at the start of the event
-*@param duration_ms Duration to check against in milliseconds 
+* @param start Tick value captured at the start of the interval
+* @param duration_ms Duration to check in milliseconds 
 *
-*@retval 1 if duration_ms has elapsed since start
-*@retval 0 if duration_ms has not yet elapsed
+* @retval 1 if duration_ms has elapsed since start
+* @retval 0 if duration_ms has not yet elapsed
 */
 uint8_t elapsed(uint32_t start, uint32_t duration_ms) {
 	return(get_tick() - start) >= duration_ms;

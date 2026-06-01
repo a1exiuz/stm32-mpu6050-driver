@@ -1,6 +1,6 @@
 /**
-*@file main.c
-*@brief MPU605 bare-metal sensor node for STM32 Nucleo-F446RE
+* @file main.c
+* @brief MPU605 bare-metal sensor node for STM32 Nucleo-F446RE
 *
 * Initializes GPIO, I2C, UART, SysTick, EXTI, and MPU6050 drivers 
 * Reads accelerometer and gyroscope data every 200ms and streams
@@ -13,9 +13,9 @@
 *
 * LED on PA6 blinks at 1Hz as a heartbeat indicator
 *
-*@note No HAL or BSP
+* @note No HAL or BSP
 *
-@ref STM32F446RE Reference Manual RM0390
+* @ref STM32F446RE Reference Manual RM0390
 */
 #include "systick.h"
 #include "gpio.h"
@@ -29,11 +29,11 @@
 static volatile uint8_t mode = 0;
 
 /**
-*@brief Application entry point
+* @brief Application entry point
 *
-*Initializes all peripherals and enters the main polling loop
+* Initializes all peripherals and enters the main polling loop
 *
-*@retval int Never returns in normal operation
+* @retval int Never returns in normal operation
 */
 int main(void) {
     SysTick_Init();

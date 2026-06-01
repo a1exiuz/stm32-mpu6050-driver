@@ -1,28 +1,30 @@
 /**
-*@file i2c.c
-*@brief I2C1 driver for STM32F446RE
+* @file i2c.c
+* @brief I2C1 driver for STM32F446RE
 *
-*Provides blocking I2C communication at 100kHz using the STM32F446RE
-*I2C1 peripheral on PB8 (SCL) and PB9 (SDA).
-*Supports single byte register write, single byte register read, and multi-byte burst read soon to come.
+* Provides blocking I2C communication at 100kHz using the STM32F446RE
+* I2C1 peripheral on PB8 (SCL) and PB9 (SDA).
+* Supports single byte register write, single byte register read
+* and multi-byte burst read over I2C1 in standard at 100kHz
 *
-*@note GPIO pins PB8 and PB9 must be configure as AF4 open drain via
-*      GPIO_init before calling I2C1_init().
-*      multi-byte burst read is not yet working, use single byte read in the meantime.
+* @note GPIO pins PB8 and PB9 must be configure as AF4 open drain via
+*       GPIO_init before calling I2C1_init().
+*      
 *
-*@ref STM32F446RE Reference Manual RM0390, Section 24 (I2C)
+* @ref STM32F446RE Reference Manual RM0390, Section 24 (I2C)
 */
 #include "i2c.h"
 #include "gpio.h"
 
 /**
-*@brief Initializes the I2C1 peripheral at 100kHz with 16MHz PCKL1
+* @brief Initializes I2C1 peripheral at 100kHz standard mode with 16MHz PCKL1
 *
 * Resets the peripheral, configures clock speed, rise time, 
-* and enable I2C1
-*@note GPIO pins PB8 and PB9 must be configure as AF4 open drain via 
-*      GPIO_init before calling this function.  
-*@retval None
+* and enables I2C1
+*
+* @note GPIO pins PB8 and PB9 must be configure as AF4 open drain via 
+*       GPIO_init before calling this function.  
+* @retval None
  */
 void I2C1_init(void) {
     RCC->APB1ENR |= (1U << 21); /* enable I2C1 clock*/
@@ -38,19 +40,19 @@ void I2C1_init(void) {
 }
 
 /**
-*@brief Writes a single byte to a register on an I2C device 
+* @brief Writes a single byte to a register on an I2C device 
 *
 * Perfomrs a stnadard I2C write transaction:
 * START -> address + write -> register address -> data byte -> STOP
 *
-*@param dev_addr 7-bit I2C device address
-*@param reg target register on the device
-*@param data byte to write
+* @param dev_addr 7-bit I2C device address
+* @param reg target register address on the device
+* @param data byte to write
 *
-*@note Blocking - spins until each bus condition is met
+* @note Blocking - spins until each bus condition is met
 *      Will hang indefinitely if the bus is stuck
 *
-*@retval None
+* @retval None
 */
 void I2C1_write_reg(uint8_t dev_addr, uint8_t reg, uint8_t data) {
     while(I2C1->SR2 & (1U << 1)); /* wait until bus is not busy */  
@@ -74,18 +76,19 @@ void I2C1_write_reg(uint8_t dev_addr, uint8_t reg, uint8_t data) {
 }
 
 /**
-*@brief Reads a single byte from a register on an I2C device
+* @brief Reads a single byte from a register on an I2C device
 *
 * Perfomrs a write-then-read transaction with a repeated START
 * START -> address + write -> register -> repeated START -> address + read -> STOP -> DATA
 *
-*@param dev_addr 7-bit I2C device address
-*@param reg register address to read from
+* @param dev_addr 7-bit I2C device address
+* @param reg register address to read from
 *
-*@note Blocking - spins until each bus condition is met
-*      ACK is re-enabled after the read for next transactions
+* @note Blocking - spins until each bus condition is met
+*       STOP is generated before reading DR per STM32 master receiver sequence
 *
-*@retval byte read from device
+*
+* @retval uint8_t byte read from the specified register
 */
 uint8_t I2C1_read_reg(uint8_t dev_addr, uint8_t reg) {
     while(I2C1->SR2 & (1U << 1));       /* wait until bus is not busy */
@@ -121,22 +124,22 @@ uint8_t I2C1_read_reg(uint8_t dev_addr, uint8_t reg) {
 }
 
 /**
-*@brief Reads multiple consecutive bytes from an I2C device using burst read
+* @brief Reads multiple consecutive bytes from an I2C device using burst read
 *
 * Perfroms a write-then-read transaction with a repeated START
 * Uses ACK/NACK control to correclty terminate the read sequence
 * NACK is sent on the second to last byte and STOP on the last byte
 * per the STM32 I2C peripheral requirements for multi-byte reads
 *
-*@param dev_addr 7-bit I2C device address
-*@param reg register address to read from
-*@param buf pointer to buffer to store read data
-*@param len number of bytes to read
+* @param dev_addr 7-bit I2C device address
+* @param reg register address to read from
+* @param buf pointer to buffer to store read data
+* @param len number of bytes to read
 *
-*@note Blocking - spins until each bus condition is met
+* @note Blocking - spins until each bus condition is met
 *      buf must be at least len bytes in size 
-*      Currently does not work - likely issue with ACK/NACK sequence, needs debugging   
-*@retval None
+*      
+* @retval None
 */
 void I2C1_read_burst(uint8_t dev_addr, uint8_t reg, uint8_t *buf, uint8_t len) {
     if(len == 0) return;

@@ -1,67 +1,114 @@
-/*
-    systick.h
-    SysTick system timer driver for STM32F446RE
-    Provides millisecond tick counter, delay, and elapsed time utilities
-    Base address: 0xE000E010 (ARM Cortex-M4 core peripheral)
-    Reference: STM32F446RE Reference Manual RM0390, Section 4
-                ARM Cortex-M4 Generic User Guide, Section 4
+/**
+* @file systick.h
+* @brief SysTick timer driver for STM32F446RE
+*
+* Provides a 1ms timebase using the ARM Cortex-M4 SysTick timer.
+* Exposes millisecond tick counter, blocking delay, and non-blocking
+* elapsed time check utilities.
+*
+* @note SysTick is owned exclusively by this driver. 
+*
+* Base address: 0xE000E010
+*
+* @ref STM32F446RE Reference Manual RM0390 - Section 4 (SysTick)
+* @ref ARM Cortex-M4 Generic User Guide - Section 4.4 (SysTick)
 */
+
 #ifndef SYSTICK_H
 #define SYSTICK_H
 
 #include <stdint.h>
 
+/** @brief SysTick peripheral base address */
 #define SYSTICK ((SYSTICK_RegMap_t*)0xE000E010UL)
-#define SYSTICK_LOAD_1MS (16000U - 1U) // 16MHz, 1000- 1= 15999
-#define DEBOUNCE_MS 50U                // 50ms debounce window for buttons
 
-/*
-    SysTick register map
-    Each register is 32 bits wide
+/** @brief SysTick reload value for 1ms tick at 16MHz: (16000000 / 1000) - 1 */
+#define SYSTICK_LOAD_1MS (16000U - 1U)
+
+/** @brief Debounce window for button inputs in milliseconds */
+#define DEBOUNCE_MS 50U
+
+/**
+* @brief SysTick peripheral register map.
+*
+* Mapped directly to hardware at base address 0xE000E010.
+* Each register is 32 bits wide.
 */
 typedef struct {
-    volatile uint32_t CTRL; //0x00 - control and status (enable, interrupt, clock source)
-    volatile uint32_t LOAD; //0x04 - reload value - counter resets to this value on underflow
-    volatile uint32_t VAL;  //0x08 - current counter value - write any value to clear
-    volatile uint32_t CALIB;//0x0C - calibration value (tenms field, SKEW, NOREF flags)
+    volatile uint32_t CTRL;  /**< 0x00 - Control and status (enable, interrupt, clock source) */
+    volatile uint32_t LOAD;  /**< 0x04 - Reload value — counter resets to this on underflow */
+    volatile uint32_t VAL;   /**< 0x08 - Current counter value — write any value to clear */
+    volatile uint32_t CALIB; /**< 0x0C - Calibration value (TENMS, SKEW, NOREF flags) */
 } SYSTICK_RegMap_t;
 
-/*
-    SysTick_Handler
-    ISR - called automatically ever 1ms when SysTick underflows
-    Increments ms_tick counter by get_tick, delay_ms, and elapsed
-    Must not be called directly
+/**
+* @brief SysTick interrupt handler 
+*
+* Called every 1ms by the SysTick timer. Increments the global
+* millisecond counter used by get_tick(), delay_ms(), and elapsed()
+*
+* @note Do not call directly — invoked automatically by hardware on underflow.
+*
+* @retval  None
 */
 void SysTick_Handler(void);
 
-/*
-    SysTick_Init
-    Initiaizes SysTick timer for 1ms interrupt at 16MHz
-    Must be called before any use of delay_ms, get_tick, and elapsed
+/**
+* @brief Initializes SysTick for a 1ms interrupt period at 16MHz.
+*
+* Configures the reload value, clears the current value register
+* and enables SysTick with processor clock and interrupt enabled
+*
+*
+* @note Must be called before any use of get_tick(), delay_ms(), or elapsed().
+*
+* @retval None
 */
 void SysTick_Init(void);
 
-/*
-    get_tick
-    Returns current millisecond tick count since SysTick_Init was called
-    Wraps around after ~49 days (uint32_t overflow)
-    Use elapsed() for time comparisons to handle wraparound correctly
+/**
+* @brief Returns the current millisecond tick count
+*
+* Wraps around after ~49.7 days (UINT32_MAX ms).
+* Use elapsed() for time comparisons to handle wraparound correctly.
+*
+* @retval uint32_t  Milliseconds elapsed since SysTick_Init() was called
 */
 uint32_t get_tick(void);
 
-/*
-    delay_ms
-    Blocking delay for specified number of milliseconds
-    Uses get_tick internally - requires SysTick_Init to be called first
-    Do not call from an ISR
+/**
+* @brief Blocking delay for a specified number of milliseconds.
+*
+* @param ms Number of milliseconds to delay
+*
+* @note Blocking — CPU is occupied for the full duration.
+*       Do not call from an ISR.
+*       Use elapsed() for non-blocking timing in the main loop.
+*
+* @retval None
 */
 void delay_ms(uint32_t ms);
 
-/*
-    elapsed
-    Returns 1 if duration_ms milliseconds have passed since start
-    handles uint32_5 wraparound correctly
-    Usage: if(elapsed(timer, 200)) { timer = get_tick(); ... }
+/**
+* @brief Non-blocking check if a time duration has elapsed.
+*
+* Compares the current tick against a stored start time
+*
+* @param start Tick value captured at the start of the interval
+* @param duration_ms  Duration to check in milliseconds
+*
+* Example:
+* @code
+*   uint32_t timer = get_tick();
+*   if(elapsed(timer, 200)) {
+*       timer = get_tick();
+*       // do something every 200ms
+*   }
+* @endcode
+*
+* @retval 1 if duration_ms has elapsed since start
+* @retval 0 if duration_ms has not yet elapsed
 */
 uint8_t elapsed(uint32_t start, uint32_t duration_ms);
-#endif
+
+#endif /* SYSTICK_H */

@@ -1,7 +1,7 @@
 /**
-*@file uart.c
+* @file uart.c
 *
-*@brief UART2 driver for STM32F446RE
+* @brief UART2 driver for STM32F446RE
 *
 * Provides blocking UART transmit over USART2 at 115200 8N1
 * Configured on PA2 (TX) and PA3 (RX) using alternate function AF7
@@ -11,17 +11,17 @@
 *   - UART2_send_str(): transmit a null-terminated string
 *   - UART2_print_int(): transmit a signed 32-bit integer as ASCII
 *
-*@note PA2 and PA3 must not be reconfigured elsewhere after calling
+* @note PA2 and PA3 must not be reconfigured elsewhere after calling
 *      UART2_init() as this driver owns those pins
 *
-*@ref STM32F446RE Reference Manual RM0390, Section 30 (USART)
+* @ref STM32F446RE Reference Manual RM0390, Section 30 (USART)
 */
 
 #include "uart.h"
 #include "gpio.h"
 
 /**
-*@brief Initializes USART2 at 115200 buad, 8N1 on PA2 (TX) and PA3 (RX)
+* @brief Initializes USART2 at 115200 buad, 8N1 on PA2 (TX) and PA3 (RX)
 *
 * Enables GPIOA and USART2 clocks, configures PA2/PA3 as AF7
 * sets baud rate, and enables transmitter, receiver, and USART
@@ -30,7 +30,7 @@
 * USARTDIV = 16000000 / (16 * 115200) = 8.68
 * Mantissa = 8, Fraction = 0.68 * 16 = 10 (0xA)
 *
-*@retval None
+* @retval None
 */
 void UART2_init(void) {
     SET_BIT(RCC->AHB1ENR, 0); /* GPIOA clock enable */
@@ -53,14 +53,14 @@ void UART2_init(void) {
 }
 
 /**
-*@brief Transmits a single character over UART2
+* @brief Transmits a single character over UART2
 *
 * Blocks until the transmit data register is empty 
 * then writes the character
 *
-*@param c Character to transmit
+* @param c Character to transmit
 *
-*@retval None
+* @retval None
 */
 void UART2_send_char(char c) {
     while(!(USART2->SR & (1U << 7))); /* wait TXE */
@@ -68,13 +68,13 @@ void UART2_send_char(char c) {
 }
 
 /**
-*@brief Transmits a null-terminated string over UART2
+* @brief Transmits a null-terminated string over UART2
 *
 * Calls UART2_send_char() for each character until null terminator is reached
 *
-*@param s Pointer to null-termninated string to transmit
+* @param s Pointer to null-termninated string to transmit
 *
-*@retval None
+* @retval None
 */
 void UART2_send_str(const char *s) {
     while(*s) {
@@ -83,18 +83,18 @@ void UART2_send_str(const char *s) {
 }
 
 /**
-*@brief Transmits a signed 32-bit integer as ASCII digits over UART2
+* @brief Transmits a signed 32-bit integer as ASCII digits over UART2
 *
 * Handles negative values by transmitting a '-' prefix
 * Digits are extracted in reverse order into a local buffer
 * then transmitted in correct order
 *
-*@param val Signed integer to transmit
+* @param val Signed integer to transmit
 *
-*@note Buffer is sized for 10 digits plus sign - sufficent for 
+* @note Buffer is sized for 10 digits plus sign - sufficent for 
 *      the full int32_t range (-2147483648 to 2147483647)
 *
-*@retval None
+* @retval None
 */
 void UART2_print_int(int32_t val) {
     char buf[12];
