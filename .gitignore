@@ -1,9 +1,22 @@
+# Build outputs
 Debug/
 Release/
+
+# Object and dependency files
 *.o
 *.d
-*.elf
-*.map
-*.list
 *.su
+*.cyclo
+
+# Map and linker files
+*.map
+*.elf
+*.bin
+*.hex
+*.lst
+
+# IDE config files
+.cproject
+.project
 .settings/
+*.launch
